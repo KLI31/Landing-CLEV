@@ -1,0 +1,52 @@
+---
+import { SOCIAL_LINKS } from "../utils/constanst";
+import RightIcon from "../icons/RightIcon.astro";
+
+const socialColors: Record<string, string> = {
+    'Facebook': '#1877F2',
+    'Instagram': '#E4405F', 
+    'Youtube': '#FF0000',
+    'LinkedIn': '#0A66C2',
+    'TikTok': '#000000'
+};
+
+
+const getSocialColor = (name: string): string => {
+    return socialColors[name] || '#6B7280';
+};
+---
+
+<nav aria-label="Enlaces de redes sociales" class="social-links">
+    <ul class="flex flex-col gap-y-2" role="list">
+        {
+            SOCIAL_LINKS.map((socialLink) => (
+                <li class="group">
+                    <a 
+                        href={socialLink.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="flex items-center gap-x-3 p-3 rounded-xl transition-all duration-300 hover:bg-gray-50 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] group-hover:translate-x-1"
+                        aria-label={`Visitar nuestro perfil de ${socialLink.name}`}
+                        title={`Seguir en ${socialLink.name}`}
+                    >
+                        <div 
+                            class=" inline-flex items-center justify-center w-8 h-8 rounded-full shadow-sm transition-all duration-300 group-hover:shadow-lg group-hover:scale-110"
+                            style={`background: linear-gradient(135deg, ${getSocialColor(socialLink.name)}, ${getSocialColor(socialLink.name)}dd); color: white;`}
+                        >
+                            <socialLink.icon class="size-5 object-contain" fill="white" />
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-sm font-bold group-hover:text-clev-blue transition-colors duration-200">
+                                {socialLink.name}
+                            </span>
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                @corporacionclev
+                            </p>
+                        </div>
+                        <RightIcon />
+                    </a>
+                </li>
+            ))
+        }
+    </ul>
+</nav>
