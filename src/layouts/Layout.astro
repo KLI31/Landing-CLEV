@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import Sidebar from '../components/Sidebar.astro';
+import MainContent from '../components/MainContent.astro';
 ---
 
 <!doctype html>
@@ -12,7 +14,11 @@ import '../styles/global.css';
 		<title>Astro Basics</title>
 	</head>
 	<body>
-		<slot />
+		<Sidebar />
+		<main class="min-h-screen bg-gray-100 p-4 md:p-8 pl-0 md:pl-72 transition-all duration-300">
+			<MainContent />
+			<slot />
+		</main>
 	</body>
 </html>
 
