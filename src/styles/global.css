@@ -1,1 +1,55 @@
 @import "tailwindcss";
+
+@theme {
+  --font-gilroy: "Gilroy", sans-serif;
+  --font-sans: "Gilroy", system-ui, sans-serif;
+
+  --color-clev-yellow: #ffc746;
+  --color-clev-blue: #037ff3;
+  --color-clev-gray: #01101c;
+  --color-clev-green: #0cb9c0;
+  --color-clev-red: #ff0000;
+  --color-clev-black: #000000;
+  --color-clev-white: #ffffff;
+  --color-clev-text: #363539;
+}
+
+@font-face {
+  font-family: "Gilroy";
+  src: url("/fonts/Gilroy-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gilroy";
+  src: url("/fonts/Gilroy-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gilroy";
+  src: url("/fonts/Gilroy-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gilroy";
+  src: url("/fonts/Gilroy-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gilroy";
+  src: url("/fonts/Gilroy-Heavy.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
