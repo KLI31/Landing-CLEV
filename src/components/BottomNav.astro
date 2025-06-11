@@ -1,0 +1,189 @@
+---
+import { SOCIAL_LINKS } from "../utils/constanst";
+
+const socialColors: Record<string, string> = {
+    'Facebook': '#1877F2',
+    'Instagram': '#E4405F', 
+    'Youtube': '#FF0000',
+    'LinkedIn': '#0A66C2',
+    'TikTok': '#000000'
+};
+
+const getSocialColor = (name: string): string => {
+    return socialColors[name] || '#6B7280';
+};
+---
+
+<nav 
+    class="bottom-nav fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50"
+    aria-label="Navegación de redes sociales CLEV"
+    id="bottom-nav"
+>
+    <div class="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 px-6 py-4">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 pr-4 border-r border-gray-200">
+                <span class="text-lg font-bold text-clev-blue tracking-tight">CLEV</span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                {
+                    SOCIAL_LINKS.map((socialLink, index) => (
+                        <a 
+                            href={socialLink.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="social-icon group relative flex items-center justify-center w-10 h-10 rounded-xl bg-clev-gray transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95"
+                            aria-label={`Visitar ${socialLink.name} de CLEV`}
+                            title={`Siguenos en ${socialLink.name}`}
+                            data-social={socialLink.name.toLowerCase()}
+                            data-index={index}
+                        >
+                            <socialLink.icon 
+                                fill="currentColor"
+                                class="w-5 h-5 text-clev-white group-hover:text-white transition-all duration-300 z-10 relative" 
+                            />
+                            
+                            <div 
+                                class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-0 group-hover:scale-100"
+                                style={`background: linear-gradient(135deg, ${getSocialColor(socialLink.name)}, ${getSocialColor(socialLink.name)}dd);`}
+                            ></div>
+                        </a>
+                    ))
+                }
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    import { gsap } from 'gsap';
+
+    // Función para animar la entrada del bottom nav
+    function animateBottomNav() {
+        const bottomNav = document.getElementById('bottom-nav');
+        const socialIcons = bottomNav?.querySelectorAll('.social-icon');
+        
+        if (!bottomNav || !socialIcons) return;
+
+        // Timeline principal
+        const tl = gsap.timeline();
+
+        // Configurar estado inicial
+        gsap.set(bottomNav, {
+            y: 100,
+            opacity: 0,
+            scale: 0.8
+        });
+
+        gsap.set(socialIcons, {
+            y: 20,
+            opacity: 0,
+            scale: 0.5
+        });
+
+        // Animación del contenedor principal
+        tl.to(bottomNav, {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.8,
+            ease: "back.out(1.7)",
+            delay: 0.5
+        });
+
+        // Animación escalonada de los iconos sociales
+        tl.to(socialIcons, {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.6,
+            ease: "back.out(1.2)",
+            stagger: 0.1
+        }, "-=0.4");
+
+        // Pequeño rebote final
+        tl.to(bottomNav, {
+            y: -5,
+            duration: 0.2,
+            ease: "power2.out"
+        }).to(bottomNav, {
+            y: 0,
+            duration: 0.3,
+            ease: "bounce.out"
+        });
+    }
+
+    // Ejecutar animación cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', animateBottomNav);
+    
+    // Para compatibilidad con navegación de Astro
+    document.addEventListener('astro:page-load', animateBottomNav);
+</script>
+
+<style>
+    /* Removemos la animación CSS ya que usaremos GSAP */
+    .bottom-nav {
+        /* animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); */
+    }
+    
+    /* Mantenemos las animaciones de hover que funcionan bien con CSS */
+    .social-icon:hover {
+        transform: translateY(-2px) scale(1.1);
+    }
+    
+    .social-icon::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 0.75rem;
+        background: linear-gradient(135deg, var(--clev-blue, #0066CC), #004499);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+    }
+    
+    .social-icon[data-social="facebook"]:hover::before {
+        background: linear-gradient(135deg, #1877F2, #0d5dbf);
+        opacity: 1;
+    }
+    
+    .social-icon[data-social="instagram"]:hover::before {
+        background: linear-gradient(135deg, #E4405F, #833AB4, #F56040);
+        opacity: 1;
+    }
+    
+    .social-icon[data-social="youtube"]:hover::before {
+        background: linear-gradient(135deg, #FF0000, #cc0000);
+        opacity: 1;
+    }
+    
+    .social-icon[data-social="linkedin"]:hover::before {
+        background: linear-gradient(135deg, #0A66C2, #004182);
+        opacity: 1;
+    }
+    
+    .social-icon[data-social="tiktok"]:hover::before {
+        background: linear-gradient(135deg, #000000, #333333);
+        opacity: 1;
+    }
+    
+    @media (max-width: 640px) {
+        .bottom-nav {
+            bottom: 1rem;
+        }
+        
+        .bottom-nav > div {
+            padding: 0.75rem 1rem;
+        }
+        
+        .social-icon {
+            width: 2.25rem;
+            height: 2.25rem;
+        }
+        
+        .social-icon svg {
+            width: 1.125rem;
+            height: 1.125rem;
+        }
+    }
+</style>
