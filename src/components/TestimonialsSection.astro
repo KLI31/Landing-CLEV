@@ -1,5 +1,6 @@
 ---
 import HeaderSection from "./HeaderSection.astro";
+import { TESTIMONIALS } from "../utils/constanst";
 ---
 
 <section class="flex flex-col"> 
@@ -7,6 +8,381 @@ import HeaderSection from "./HeaderSection.astro";
       title="Testimonios" 
       description="Lo que dicen nuestros clientes sobre nosotros" 
     />
-  
+    
+    <!-- Carrusel de Videos Testimoniales -->
+    <div class="mt-8">
+        <div class="swiper testimonials-swiper">
+            <div class="swiper-wrapper">
+                {TESTIMONIALS.map((testimonial, index) => (
+                    <div class="swiper-slide">
+                        <div 
+                            class="relative group cursor-pointer testimonial-video-card max-w-xs mx-auto" 
+                            data-video-url={testimonial.videoUrl}
+                            data-index={index}
+                        >
+                            <!-- Miniatura del video -->
+                            <div class="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-clev-blue/20 to-clev-green/20 backdrop-blur-sm">
+                                <img 
+                                    src={testimonial.thumbnail} 
+                                    alt={`Testimonio de ${testimonial.name}`}
+                                    class="w-full h-full object-cover"
+                                />
+                                
+                                <!-- Overlay oscuro -->
+                                <div class="video-overlay absolute inset-0 bg-black/40"></div>
+                                
+                                <!-- Botón de play -->
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="play-button w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg">
+                                        <svg class="w-6 h-6 text-clev-blue ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+            
+            <!-- Navegación -->
+            <div class="swiper-button-next after:text-clev-white after:text-xl"></div>
+            <div class="swiper-button-prev after:text-clev-white after:text-xl"></div>
+            
+            <!-- Paginación -->
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+    
+    <!-- Modal para reproducir videos -->
+    <div id="video-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="relative max-w-4xl w-full mx-4">
+            <button id="close-modal" class="absolute -top-12 right-0 text-white hover:text-clev-yellow transition-colors duration-200 cursor-pointer">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <video 
+                id="modal-video" 
+                class="w-full aspect-video rounded-2xl shadow-2xl" 
+                controls 
+                preload="none"
+            >
+                Tu navegador no soporta el elemento video.
+            </video>
+        </div>
+    </div>
 </section>
+
+<script>
+    import { Swiper } from 'swiper';
+    import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+    import { gsap } from 'gsap';
+    import 'swiper/css';
+    import 'swiper/css/navigation';
+    import 'swiper/css/pagination';
+
+    function initTestimonialsSwiper() {
+        const swiper = new Swiper('.testimonials-swiper', {
+            modules: [Navigation, Pagination, Autoplay],
+            slidesPerView: 1,
+            spaceBetween: 20,
+            loop: true,
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+                bulletClass: 'swiper-pagination-bullet',
+                bulletActiveClass: 'swiper-pagination-bullet-active',
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                    spaceBetween: 24,
+                },
+                1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 32,
+                },
+                1280: {
+                    slidesPerView: 4,
+                    spaceBetween: 32,
+                },
+            },
+            on: {
+                init: function() {
+                    // Animar entrada de las tarjetas con GSAP
+                    animateTestimonialCards();
+                }
+            }
+        });
+
+        // Funcionalidad del modal de video con GSAP
+        const modal = document.getElementById('video-modal');
+        const modalVideo = document.getElementById('modal-video') as HTMLVideoElement;
+        const closeModal = document.getElementById('close-modal');
+        const videoCards = document.querySelectorAll('.testimonial-video-card');
+
+        // Configurar animaciones hover con GSAP
+        setupHoverAnimations();
+
+        // Abrir modal al hacer clic en una tarjeta de video
+        videoCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const videoUrl = card.getAttribute('data-video-url');
+                if (videoUrl && modal && modalVideo) {
+                    openVideoModal(videoUrl, modal, modalVideo);
+                }
+            });
+        });
+
+        // Cerrar modal
+        function closeVideoModal() {
+            if (modal && modalVideo) {
+                gsap.to(modal, {
+                    opacity: 0,
+                    backdropFilter: 'blur(0px)',
+                    duration: 0.3,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                        modalVideo.src = '';
+                        modalVideo.pause();
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+        }
+
+        function openVideoModal(videoUrl: string, modal: HTMLElement, modalVideo: HTMLVideoElement) {
+            modalVideo.src = videoUrl;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+
+            // Animar apertura del modal con GSAP
+            gsap.fromTo(modal, 
+                { 
+                    opacity: 0,
+                    backdropFilter: 'blur(0px)' 
+                },
+                { 
+                    opacity: 1,
+                    backdropFilter: 'blur(8px)',
+                    duration: 0.4,
+                    ease: "power2.out"
+                }
+            );
+
+            gsap.fromTo(modal.querySelector('.relative'),
+                {
+                    scale: 0.8,
+                    y: 50,
+                    opacity: 0
+                },
+                {
+                    scale: 1,
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.5,
+                    ease: "back.out(1.2)",
+                    delay: 0.1
+                }
+            );
+        }
+
+        closeModal?.addEventListener('click', closeVideoModal);
+        
+        // Cerrar modal al hacer clic fuera del video
+        modal?.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeVideoModal();
+            }
+        });
+
+        // Cerrar modal con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeVideoModal();
+            }
+        });
+    }
+
+    function animateTestimonialCards() {
+        const cards = document.querySelectorAll('.testimonial-video-card');
+        
+        // Configurar estado inicial
+        gsap.set(cards, {
+            y: 50,
+            opacity: 0,
+            scale: 0.8
+        });
+
+        // Animar entrada escalonada
+        gsap.to(cards, {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.8,
+            ease: "back.out(1.2)",
+            stagger: 0.2,
+            delay: 0.3
+        });
+    }
+
+    function setupHoverAnimations() {
+        const videoCards = document.querySelectorAll('.testimonial-video-card');
+
+        videoCards.forEach(card => {
+            const img = card.querySelector('img');
+            const playButton = card.querySelector('.play-button');
+            const overlay = card.querySelector('.video-overlay');
+
+            // Hover in
+            card.addEventListener('mouseenter', () => {
+                gsap.to(img, {
+                    scale: 1.1,
+                    duration: 0.4,
+                    ease: "power2.out"
+                });
+
+                gsap.to(playButton, {
+                    scale: 1.15,
+                    rotation: 5,
+                    duration: 0.3,
+                    ease: "back.out(1.2)"
+                });
+
+                gsap.to(overlay, {
+                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+
+            // Hover out
+            card.addEventListener('mouseleave', () => {
+                gsap.to(img, {
+                    scale: 1,
+                    duration: 0.4,
+                    ease: "power2.out"
+                });
+
+                gsap.to(playButton, {
+                    scale: 1,
+                    rotation: 0,
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+
+                gsap.to(overlay, {
+                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+
+            // Click animation
+            card.addEventListener('click', () => {
+                gsap.to(playButton, {
+                    scale: 0.9,
+                    duration: 0.1,
+                    ease: "power2.out",
+                    yoyo: true,
+                    repeat: 1
+                });
+            });
+        });
+    }
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', initTestimonialsSwiper);
+    
+    // Para compatibilidad con navegación de Astro
+    document.addEventListener('astro:page-load', initTestimonialsSwiper);
+</script>
+
+<style>
+    /* Estilos para el carrusel */
+    .testimonials-swiper {
+        padding: 0 0 3rem 0;
+    }
+
+    /* Estilos para los botones de navegación */
+    .swiper-button-next,
+    .swiper-button-prev {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .swiper-button-next:hover,
+    .swiper-button-prev:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.1);
+    }
+
+    .swiper-button-next::after,
+    .swiper-button-prev::after {
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    /* Estilos para la paginación */
+    .swiper-pagination {
+        bottom: 0 !important;
+    }
+
+    .swiper-pagination-bullet {
+        width: 10px;
+        height: 10px;
+        background: rgba(255, 255, 255, 0.4);
+        opacity: 1;
+        transition: all 0.3s ease;
+    }
+
+    .swiper-pagination-bullet-active {
+        background: var(--color-clev-yellow);
+        transform: scale(1.2);
+    }
+
+    /* Removemos las animaciones CSS ya que usamos GSAP */
+    .testimonial-video-card img {
+        transition: none;
+    }
+
+    .play-button {
+        transition: none;
+    }
+
+    .video-overlay {
+        transition: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .swiper-button-next,
+        .swiper-button-prev {
+            width: 36px;
+            height: 36px;
+        }
+        
+        .swiper-button-next::after,
+        .swiper-button-prev::after {
+            font-size: 14px;
+        }
+    }
+</style>
 
