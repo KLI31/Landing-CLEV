@@ -1,6 +1,5 @@
 ---
 import '../styles/global.css';
-import Sidebar from '../components/Sidebar.astro';
 import { 
 	SITE_TITLE, 
 	SITE_DESCRIPTION, 	
@@ -19,8 +18,18 @@ import {
 		<meta name="description" content={SITE_DESCRIPTION} />		
 	</head>
 	<body class="overflow-hidden">
-		<Sidebar />
-		<main class="h-screen bg-gray-100 pl-0 md:pl-72 overflow-hidden">			
+		<div class="fixed inset-0 z-0">
+			<img 
+				src="/bg-image.webp" 
+				alt="Fondo" 
+				class="w-full h-full object-cover opacity-40"
+				loading="lazy"
+				fetchpriority="high"
+			/>
+		</div>
+		<div class="fixed inset-0 z-10 bg-black opacity-75"/>
+		
+		<main class="relative z-10 h-screen overflow-hidden">
 			<slot />
 		</main>
 	</body>
