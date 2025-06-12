@@ -9,8 +9,8 @@ import { TESTIMONIALS } from "../utils/constanst";
       description="Lo que dicen nuestros clientes sobre nosotros" 
     />
     
-    <!-- Carrusel de Videos Testimoniales -->
-    <div class="mt-8">
+    
+    <div class="mt-2">
         <div class="swiper testimonials-swiper">
             <div class="swiper-wrapper">
                 {TESTIMONIALS.map((testimonial, index) => (
@@ -20,18 +20,15 @@ import { TESTIMONIALS } from "../utils/constanst";
                             data-video-url={testimonial.videoUrl}
                             data-index={index}
                         >
-                            <!-- Miniatura del video -->
+                            
                             <div class="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-clev-blue/20 to-clev-green/20 backdrop-blur-sm">
                                 <img 
                                     src={testimonial.thumbnail} 
                                     alt={`Testimonio de ${testimonial.name}`}
                                     class="w-full h-full object-cover"
                                 />
-                                
-                                <!-- Overlay oscuro -->
                                 <div class="video-overlay absolute inset-0 bg-black/40"></div>
                                 
-                                <!-- Botón de play -->
                                 <div class="absolute inset-0 flex items-center justify-center">
                                     <div class="play-button w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg">
                                         <svg class="w-6 h-6 text-clev-blue ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -44,17 +41,10 @@ import { TESTIMONIALS } from "../utils/constanst";
                     </div>
                 ))}
             </div>
-            
-            <!-- Navegación -->
-            <div class="swiper-button-next after:text-clev-white after:text-xl"></div>
-            <div class="swiper-button-prev after:text-clev-white after:text-xl"></div>
-            
-            <!-- Paginación -->
-            <div class="swiper-pagination"></div>
         </div>
     </div>
     
-    <!-- Modal para reproducir videos -->
+    
     <div id="video-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm">
         <div class="relative max-w-4xl w-full mx-4">
             <button id="close-modal" class="absolute -top-12 right-0 text-white hover:text-clev-yellow transition-colors duration-200 cursor-pointer">
@@ -91,17 +81,7 @@ import { TESTIMONIALS } from "../utils/constanst";
             autoplay: {
                 delay: 5000,
                 disableOnInteraction: false,
-            },
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-                bulletClass: 'swiper-pagination-bullet',
-                bulletActiveClass: 'swiper-pagination-bullet-active',
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
+            },            
             breakpoints: {
                 640: {
                     slidesPerView: 2,
@@ -112,8 +92,8 @@ import { TESTIMONIALS } from "../utils/constanst";
                     spaceBetween: 32,
                 },
                 1280: {
-                    slidesPerView: 4,
-                    spaceBetween: 32,
+                    slidesPerView: 5,
+                    spaceBetween: 20,
                 },
             },
             on: {
@@ -168,7 +148,7 @@ import { TESTIMONIALS } from "../utils/constanst";
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
 
-            // Animar apertura del modal con GSAP
+            
             gsap.fromTo(modal, 
                 { 
                     opacity: 0,
