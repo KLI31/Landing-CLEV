@@ -19,12 +19,8 @@ const getSocialColor = (name: string): string => {
     aria-label="Navegación de redes sociales CLEV"
     id="bottom-nav"
 >
-    <div class="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl  px-6 py-4">
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-2 pr-4 border-r border-gray-200">
-                <span class="text-lg font-bold text-clev-blue tracking-tight">CLEV</span>
-            </div>
-            
+    <div class="bg-transparent backdrop-blur-xl rounded-2xl shadow-2xl  px-6 py-4">
+        <div>
             <div class="flex items-center gap-3">
                 {
                     SOCIAL_LINKS.map((socialLink, index) => (
@@ -32,7 +28,7 @@ const getSocialColor = (name: string): string => {
                             href={socialLink.url} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            class="social-icon group relative flex items-center justify-center w-10 h-10 rounded-xl bg-clev-gray transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95"
+                            class="social-icon group relative flex items-center justify-center w-10 h-10 rounded-xl bg-transparent transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95"
                             aria-label={`Visitar ${socialLink.name} de CLEV`}
                             title={`Siguenos en ${socialLink.name}`}
                             data-social={socialLink.name.toLowerCase()}
