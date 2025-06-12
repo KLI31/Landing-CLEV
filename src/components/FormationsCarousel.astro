@@ -1,0 +1,197 @@
+---
+import type { Formation } from "../interfaces/Formation";
+
+interface Props {
+    formations: Formation[];
+}
+
+const { formations } = Astro.props;
+
+// Función helper para formatear fechas
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+};
+---
+
+<div class="formations-swiper overflow-hidden">
+    <div class="swiper-wrapper">
+        {formations.map((formation) => (
+            <div class="swiper-slide">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full">
+                    <!-- Imagen de la formación -->
+                    <div class="w-50 aspect-square relative">
+                        <img
+                            src={formation.formation.image}
+                            alt={formation.formation.name}
+                            class="w-full h-full object-cover"
+                        />
+                        <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-sm font-medium text-gray-600">
+                            {formation.formation.duration}
+                        </div>
+                    </div>
+
+                    <!-- Contenido de la card -->
+                    <div class="flex-1 p-6 flex flex-col">
+                        <div class="flex flex-col gap-2 text-sm text-gray-500">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>Inicio: {formatDate(formation.startDate)}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>Fin: {formatDate(formation.endDate)}</span>
+                            </div>
+                        </div>
+                        <button class="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                            Inscribirse
+                        </button>
+                    </div>
+                </div>
+            </div>
+        ))}
+    </div>
+    
+    <!-- Pagination -->
+    <div class="swiper-pagination mt-8"></div>
+    
+    <!-- Navigation -->
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+</div>
+
+<style>
+    @import 'swiper/css';
+    @import 'swiper/css/navigation';
+    @import 'swiper/css/pagination';
+    
+    .formations-swiper {
+        padding: 0 50px 40px 50px;
+    }
+    
+    /* Pagination */
+    .swiper-pagination-bullet {
+        background: rgba(37, 99, 235, 0.4) !important;
+        width: 12px !important;
+        height: 12px !important;
+        opacity: 1 !important;
+        margin: 0 4px !important;
+    }
+    
+    .swiper-pagination-bullet-active {
+        background: #2563eb !important;
+        transform: scale(1.3) !important;
+    }
+    
+    /* Navigation */
+    .swiper-button-prev,
+    .swiper-button-next {
+        width: 44px !important;
+        height: 44px !important;
+        margin-top: 0 !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(10px) !important;
+        border-radius: 50% !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: #2563eb !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .swiper-button-prev:hover,
+    .swiper-button-next:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        transform: translateY(-50%) scale(1.1) !important;
+    }
+    
+    .swiper-button-prev::after,
+    .swiper-button-next::after {
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .formations-swiper {
+            padding: 0 20px 40px 20px;
+        }
+        
+        .swiper-button-prev,
+        .swiper-button-next {
+            width: 36px !important;
+            height: 36px !important;
+            margin-top: -18px !important;
+        }
+        
+        .swiper-button-prev::after,
+        .swiper-button-next::after {
+            font-size: 14px !important;
+        }
+    }
+    
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+
+<script>
+    import { Swiper } from 'swiper';
+    import 'swiper/css/grid';
+    import { Navigation, Pagination, Autoplay, Grid } from 'swiper/modules';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        new Swiper('.formations-swiper', {
+            modules: [Navigation, Pagination, Autoplay, Grid],
+            slidesPerView: 1,
+            spaceBetween: 30,
+            loop: true,
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                    spaceBetween: 20,
+                    grid: {
+                        fill: 'row',
+                        rows: 1,
+                    }
+                },
+                1024: {
+                    slidesPerView: 2,
+                    spaceBetween: 30,
+                    grid: {
+                        fill: 'row',
+                        rows: 1,
+                    }
+                },
+                1280: {
+                    slidesPerView: 4,
+                    spaceBetween: 30,
+                    grid: {
+                        fill: 'row',
+                        rows: 2,
+                    }
+                }
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+        });
+    });
+</script>
