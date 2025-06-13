@@ -14,9 +14,9 @@ const { formations } = Astro.props;
     <div class="swiper-wrapper">
         {formations.map((formation) => (
             <div class="swiper-slide min-h-full">
-                <div class="flex bg-clev-white rounded-lg shadow-md overflow-hidden  h-full min-h-[200px]">
+                <div class="flex bg-clev-white border border-clev-text/10 rounded-lg shadow-xl overflow-hidden h-full min-h-[200px]">
                     
-                    <div class="w-32 h-full flex-shrink-0 relative">
+                    <div class="w-50 h-full flex-shrink-0 relative">
                         <img
                             src={formation.formation.image}
                             alt={formation.formation.name}
@@ -214,7 +214,7 @@ const { formations } = Astro.props;
                     }
                 },
                 1280: {
-                    slidesPerView: 4,
+                    slidesPerView: 3,
                     spaceBetween: 15,
                     grid: {
                         fill: 'row',
