@@ -3,8 +3,8 @@ import HeaderSection from "./HeaderSection.astro";
 import { TESTIMONIALS } from "../utils/constanst";
 import Play from "../icons/Play.astro";
 ---
-<!-- <div class="p-4 bg-[rgba(255,255,255,0.1)] border border-clev-white/10 backdrop-blur-sm drop-shadow-2xl shadow-black rounded-lg bg-clev-white/50"> -->
-<section class="flex flex-col p-4 bg-clev-text/30 border border-clev-white/10 backdrop-blur-sm drop-shadow-2xl shadow-black rounded-lg"> 
+
+<section class="flex flex-col"> 
     <HeaderSection 
       title="Testimonios" 
       description="Lo que dicen nuestros clientes sobre nosotros" 
@@ -20,21 +20,17 @@ import Play from "../icons/Play.astro";
                             data-video-url={testimonial.videoUrl}
                             data-index={index}
                         >
-                            
                             <div class="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-clev-blue/20 to-clev-green/20 backdrop-blur-sm">
                                 <img 
                                     src={testimonial.thumbnail} 
-                                    alt={`Testimonio de ${testimonial.name}`}
+                                    alt=""
                                     width="100%"
                                     height="100%"
                                     loading="eager"
-                                    class="w-fullh-full object-cover"
+                                    class="w-full h-full object-cover"
                                     fetchpriority="high"
-                                    
                                 />
-                                <div class="video-overlay absolute inset-0 bg-black/40"></div>
-                                
-                                <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                                     <div class="play-button w-16 h-16 bg-white/80 backdrop-blur-lg rounded-full flex items-center justify-center shadow-lg">
                                         <Play class="w-5 h-5" />
                                     </div>
@@ -48,7 +44,7 @@ import Play from "../icons/Play.astro";
     </div>
     
     
-    <div id="video-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div id="video-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-lg rounded-lg">
         <div class="relative max-w-4xl w-full mx-4">
             <button id="close-modal" class="absolute -top-12 right-0 text-white hover:text-clev-yellow transition-colors duration-200 cursor-pointer">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +75,7 @@ import Play from "../icons/Play.astro";
          new Swiper('.testimonials-swiper', {
             modules: [Navigation, Pagination, Autoplay],
             slidesPerView: 1,
-            spaceBetween: 10,
+            spaceBetween: 20,            
             loop: true,
             autoplay: {
                 delay: 5000,
@@ -96,9 +92,11 @@ import Play from "../icons/Play.astro";
                 },
                 1280: {
                     slidesPerView: 5,
-                    spaceBetween: 10,
+                    spaceBetween: 20,
+                    
                 },
             },
+            centeredSlides: true,
             on: {
                 init: function() {
                     animateTestimonialCards();
@@ -284,17 +282,17 @@ import Play from "../icons/Play.astro";
         });
     }
 
-    // Inicializar cuando el DOM esté listo
+    
     document.addEventListener('DOMContentLoaded', initTestimonialsSwiper);
     
-    // Para compatibilidad con navegación de Astro
+    
     document.addEventListener('astro:page-load', initTestimonialsSwiper);
 </script>
 
 <style>
     
     .testimonials-swiper {
-        padding: 0 0 3rem 0;
+        padding: 1.3rem 0 3rem 0;
     }
     
     .testimonial-video-card img {
@@ -321,6 +319,28 @@ import Play from "../icons/Play.astro";
         .swiper-button-prev::after {
             font-size: 14px;
         }
+    }
+
+    
+    .testimonials-swiper .swiper-slide {
+        transition: transform 0.4s cubic-bezier(.4,2,.6,1), filter 0.4s;
+        filter: blur(2px) grayscale(30%);
+        opacity: 0.7;
+        z-index: 1;
+        margin-top: 10px;
+    }
+    .testimonials-swiper .swiper-slide-active {
+        transform: scale(1.15) translateY(-18px);
+        filter: none;
+        opacity: 1;
+        z-index: 2;
+    }
+    .testimonials-swiper .swiper-slide-next,
+    .testimonials-swiper .swiper-slide-prev {
+        transform: scale(0.95);
+        filter: blur(1px) grayscale(10%);
+        opacity: 0.85;
+        z-index: 1;
     }
 </style>
 
