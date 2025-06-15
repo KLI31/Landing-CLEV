@@ -1,16 +1,28 @@
-export interface FormationBase {
-    id: string;
-    name: string;
-    description: string;
-    duration: string;
-    image: string;
+export interface Formation {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  hours: string;
+  imageUrl: string;
+  isPrimary: boolean;
 }
 
-export interface Formation {
-    id: string;
-    editionId: string;
-    formationId: string;
-    formation: FormationBase;
-    startDate: string;
-    endDate: string;
+export interface Edition {
+  id: string;
+  editionCode: string;
+  editionName: string;
+  startDate: string;
+  endDate: string;
+  price: string;
+  isActive: boolean;
+}
+
+export interface Enrollment {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+  edition: Edition;
+  formations: Formation[];
 }

@@ -1,9 +1,9 @@
 ---
-import type { Formation } from "../interfaces/Formation";
+import type { Enrollment } from "../interfaces/Formation";
 import { formatDate } from "../utils/helper";
 
 interface Props {
-    formations: Formation[];
+    formations: Enrollment[];
 }
 
 const { formations } = Astro.props;
@@ -12,19 +12,19 @@ const { formations } = Astro.props;
 
 <div class="formations-swiper overflow-hidden h-full">
     <div class="swiper-wrapper">
-        {formations.map((formation) => (
+        {formations.map(({edition, formations: formationList}) => (
             <div class="swiper-slide min-h-full">
                 <div class="flex flex-col bg-clev-white border border-clev-text/10 rounded-lg shadow-xl overflow-hidden h-full min-h-[200px]">
                     <div class="w-full h-70 relative">
                         <img
-                            src={formation.formation.image}
-                            alt={formation.formation.name}
+                            src={formationList[0]?.imageUrl || 'https://clev-payments.s3.us-east-1.amazonaws.com/formations/1744899433042-logo-clev.png'}
+                            alt={edition.editionName}
                             class="w-full h-full object-cover"
                             loading="eager"
                             fetchpriority="high"
                         />
                         <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm">
-                            {formation.formation.duration}
+                            {edition.editionCode}
                         </div>
                     </div>
                     <div class="flex-1 p-4 flex flex-col justify-between">
@@ -48,24 +48,29 @@ const { formations } = Astro.props;
                                 <svg class="w-3 h-3 flex-shrink-0 text-clev-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                                <span class="truncate">Inicio: {formatDate(formation.startDate)}</span>
+                                <span class="truncate">Inicio: {formatDate(edition.startDate)}</span>
                             </div>
                             <div class="flex items-center gap-1">
                                 <svg class="w-3 h-3 flex-shrink-0 text-clev-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                                <span class="truncate">Fin: {formatDate(formation.endDate)}</span>
+                                <span class="truncate">Fin: {formatDate(edition.endDate)}</span>
                             </div>
                         </div>
                         
-                        <button class="mt-auto w-full bg-gradient-to-r from-clev-blue to-blue-700 hover:from-blue-700 text-white py-2.5 px-3 rounded-lg transition-all duration-300 text-md font-semibold cursor-pointer hover:scale-105 hover:shadow-lg active:scale-95">
+                        <a 
+                            href={`https://wa.me/573105993792?text=Hola, me gustaría inscribirme en la formación: ${edition.editionName}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="mt-auto w-full bg-gradient-to-r from-clev-blue to-blue-700 hover:from-blue-700 text-white py-2.5 px-3 rounded-lg transition-all duration-300 text-md font-semibold cursor-pointer hover:scale-105 hover:shadow-lg active:scale-95"
+                        >
                             <span class="flex items-center justify-center gap-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                 </svg>
                                 Inscribirse
                             </span>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
