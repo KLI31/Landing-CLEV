@@ -1,10 +1,58 @@
 ---
 import HeaderSection from "./HeaderSection.astro";
 import FormationsCarousel from "./FormationsCarousel.astro";
-import { FORMATIONS } from "../utils/constanst";
+import { ERROR_MESSAGES, API_ENDPOINTS } from "../utils/constanst";
+import type { Enrollment } from "../interfaces/Formation";
 
+
+
+
+async function fetchEnrollmentDetails(enrollmentId: string): Promise<Enrollment | null> {
+    try {
+        const detailsUrl = `${API_ENDPOINTS.ENROLLMENT_DETAILS}${enrollmentId}/details`;
+        const response = await fetch(detailsUrl);
+        
+        if (!response.ok) {
+            throw new Error(`${ERROR_MESSAGES.DETAILS_FETCH_FAILED} ${enrollmentId}: ${response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error(`Error al obtener detalles del enrollment ${enrollmentId}:`, error);
+        return null;
+    }
+}
+
+async function fetchAllEnrollments(): Promise<Enrollment[]> {
+    try {
+        const response = await fetch(API_ENDPOINTS.ALL_ENROLLMENTS);
+
+        if (!response.ok) {
+            throw new Error(ERROR_MESSAGES.FETCH_FAILED);
+        }
+
+        const { data: enrollments } = await response.json();
+        
+        if (!enrollments?.length) {
+            console.log(ERROR_MESSAGES.NO_ENROLLMENTS);
+            return [];
+        }
+
+        const enrollmentDetailsPromises = enrollments.map((enrollment: Enrollment) => 
+            fetchEnrollmentDetails(enrollment.id)
+        );
+
+        const allDetails = await Promise.all(enrollmentDetailsPromises);
+        return allDetails.filter((detail): detail is Enrollment => detail !== null);
+
+    } catch (error) {
+        console.error('Error al obtener los detalles de las formaciones:', error);
+        return [];
+    }
+}
+
+const allFormations = await fetchAllEnrollments();
 ---
-
 
 <div>
     <HeaderSection
@@ -12,7 +60,7 @@ import { FORMATIONS } from "../utils/constanst";
         description="Descubre nuestras últimas formaciones y cursos online"
     />
     <div class="mt-4">
-        <FormationsCarousel formations={FORMATIONS} />
+        <FormationsCarousel formations={allFormations} />
     </div>
 </div>
 
