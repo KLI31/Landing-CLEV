@@ -43,12 +43,14 @@ global $testimonials;
     
     <!-- Modal de video -->
     <div id="video-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-lg rounded-lg">
+        <!-- Botón de cerrar fuera del contenedor del video -->
+        <button id="close-modal" class="absolute top-4 right-4 z-60 text-white hover:text-clev-yellow transition-colors duration-200 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
         <div class="relative max-w-4xl w-full mx-4">
-            <button id="close-modal" class="absolute -top-12 right-0 text-white hover:text-clev-yellow transition-colors duration-200 cursor-pointer">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
             <video 
                 id="modal-video" 
                 class="w-full aspect-video rounded-2xl" 

@@ -255,10 +255,38 @@ function setupVideoModal() {
 }
 
 function openVideoModal(videoUrl, modal, modalVideo) {
-    modalVideo.src = videoUrl;
+    // Limpiar el video anterior
+    modalVideo.pause();
+    modalVideo.currentTime = 0;
+    modalVideo.src = '';
+    
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
+
+    // Configurar el nuevo video
+    modalVideo.src = videoUrl;
+    modalVideo.load();
+
+    // Múltiples intentos para reproducir automáticamente
+    const playVideo = () => {
+        modalVideo.play().catch(error => {
+            console.log('Error al reproducir automáticamente:', error);
+            // Intentar de nuevo después de un breve retraso
+            setTimeout(() => {
+                modalVideo.play().catch(e => console.log('Segundo intento fallido:', e));
+            }, 500);
+        });
+    };
+
+    // Eventos para reproducción automática
+    modalVideo.addEventListener('loadeddata', playVideo, { once: true });
+    modalVideo.addEventListener('canplay', playVideo, { once: true });
+    
+    // Intentar reproducir inmediatamente si ya está cargado
+    if (modalVideo.readyState >= 3) {
+        playVideo();
+    }
 
     if (typeof gsap !== 'undefined') {
         // Animación de apertura con GSAP

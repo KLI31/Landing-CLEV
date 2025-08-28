@@ -7,7 +7,7 @@ $description = isset($description) ? $description : '';
     <h1 class="text-3xl font-bold text-clev-blue leading-tight">
         <?php echo e($title); ?>
     </h1>
-    <p class="text-sm font-medium text-clev-text">
+    <p class="text-sm font-semibold text-clev-text mb-2">
         <?php echo e($description); ?>
     </p>
 </div>
