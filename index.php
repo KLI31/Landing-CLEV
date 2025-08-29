@@ -5,6 +5,10 @@ require_once 'includes/functions.php';
 
 // Obtener datos de formaciones
 $formations = fetchAllEnrollments();
+
+// Configuración de auto-refresh (opcional)
+$enableAutoRefresh = true; // Cambiar a false para desactivar
+$autoRefreshInterval = 5;  // Minutos entre checks
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -49,5 +53,35 @@ $formations = fetchAllEnrollments();
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="assets/js/app.js"></script>
+    
+    <?php if ($enableAutoRefresh): ?>
+    <!-- Auto-refresh automático -->
+    <script>
+        // Esperar a que la aplicación esté completamente cargada
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dar tiempo para que CLEV se inicialice completamente
+            setTimeout(() => {
+                if (typeof CLEV !== 'undefined' && CLEV.enableAutoRefresh) {
+                    console.log('🔄 Iniciando auto-refresh automático...');
+                    CLEV.enableAutoRefresh(<?php echo $autoRefreshInterval; ?>);
+                    
+                    // Agregar información en consola
+                    console.log('ℹ️ Auto-refresh configurado:');
+                    console.log(`   ⏰ Intervalo: <?php echo $autoRefreshInterval; ?> minutos`);
+                    console.log(`   📊 Cache duration: <?php echo round(CACHE_DURATION/60, 1); ?> minutos`);
+                    console.log('   🛑 Para desactivar: CLEV.autoRefresh.stop()');
+                } else {
+                    console.warn('⚠️ CLEV no disponible para auto-refresh');
+                }
+            }, 2000); // 2 segundos de espera
+        });
+    </script>
+    <?php else: ?>
+    <!-- Auto-refresh desactivado -->
+    <script>
+        console.log('ℹ️ Auto-refresh desactivado en configuración');
+        console.log('🔄 Para activar manualmente: CLEV.enableAutoRefresh(5)');
+    </script>
+    <?php endif; ?>
 </body>
 </html>
