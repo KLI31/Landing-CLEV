@@ -610,6 +610,307 @@ window.CLEV = {
         } else {
             console.warn('❌ Swiper de testimonios no encontrado');
         }
+    },
+    
+    // Test de rendimiento de la aplicación
+    performanceTest: function(type = 'standard') {
+        console.log('🚀 === TEST DE RENDIMIENTO ===');
+        console.log(`Tipo de test: ${type}`);
+        
+        const startTime = performance.now();
+        
+        return fetch(`performance-test.php?type=${type}`)
+            .then(response => response.json())
+            .then(data => {
+                const clientTime = Math.round(performance.now() - startTime);
+                
+                console.log('📊 Resultados del test:');
+                console.log(`⏱️ Tiempo de carga: ${data.load_time_ms}ms (servidor) + ${clientTime}ms (cliente)`);
+                console.log(`📚 Formaciones cargadas: ${data.formations_count}`);
+                console.log(`💾 Estado del cache: ${data.cache_status}`);
+                console.log(`⭐ Rendimiento: ${data.performance_message}`);
+                
+                if (data.cache_info) {
+                    console.log('📁 Info del cache:');
+                    console.log(`   📄 Cache base: ${data.cache_info.base_exists ? 'Existe' : 'No existe'} (${data.cache_info.base_age_minutes} min)`);
+                    console.log(`   📄 Cache final: ${data.cache_info.final_exists ? 'Existe' : 'No existe'} (${data.cache_info.final_age_minutes} min)`);
+                    console.log(`   💽 Tamaño total: ${data.cache_info.total_cache_size_kb} KB`);
+                }
+                
+                if (data.optimizations) {
+                    console.log('🔧 Optimizaciones activas:');
+                    Object.entries(data.optimizations).forEach(([key, value]) => {
+                        console.log(`   ${key}: ${value}`);
+                    });
+                }
+                
+                return data;
+            })
+            .catch(error => {
+                console.error('❌ Error en test de rendimiento:', error);
+                return null;
+            });
+    },
+    
+    // Comparar rendimiento con/sin cache
+    performanceComparison: async function() {
+        console.log('🔬 === COMPARACIÓN DE RENDIMIENTO ===');
+        
+        // Test 1: Con cache (si existe)
+        console.log('Test 1: Carga normal (con cache si existe)');
+        const test1 = await CLEV.performanceTest('standard');
+        
+        // Test 2: Sin cache (forzar recarga)
+        console.log('Test 2: Carga sin cache (forzada)');
+        const test2 = await CLEV.performanceTest('force-fresh');
+        
+        // Test 3: Con cache recién creado
+        console.log('Test 3: Carga con cache recién creado');
+        const test3 = await CLEV.performanceTest('cache-only');
+        
+        if (test1 && test2) {
+            const improvement = test2.load_time_ms > 0 ? 
+                Math.round((test2.load_time_ms - test1.load_time_ms) / test2.load_time_ms * 100) : 0;
+            
+            console.log('🏆 === RESUMEN DE OPTIMIZACIÓN ===');
+            console.log(`📈 Mejora de velocidad: ${improvement}% más rápido con cache`);
+            console.log(`🚀 Sin cache: ${test2.load_time_ms}ms`);
+            console.log(`⚡ Con cache: ${test1.load_time_ms}ms`);
+            
+            if (improvement > 80) {
+                console.log('🎉 ¡Excelente optimización!');
+            } else if (improvement > 50) {
+                console.log('✅ Buena optimización');
+            } else if (improvement > 20) {
+                console.log('⚠️ Optimización moderada');
+            } else {
+                console.log('🔧 Necesita más optimización');
+            }
+        }
+    },
+    
+    // Limpiar cache desde el frontend
+    clearCache: function() {
+        console.log('🗑️ Limpiando cache...');
+        
+        return fetch('cache-manager.php?action=clear&key=clev2024')
+            .then(response => response.text())
+            .then(data => {
+                console.log('✅ Cache limpiado exitosamente');
+                console.log('🔄 Recomendación: Recarga la página para ver los cambios');
+                return true;
+            })
+            .catch(error => {
+                console.error('❌ Error al limpiar cache:', error);
+                return false;
+            });
+    },
+    
+    // Auto-refresh inteligente para detectar nuevos enrollments
+    autoRefresh: {
+        intervalId: null,
+        isEnabled: false,
+        
+        // Verificar si hay nuevos enrollments
+        checkForUpdates: function() {
+            return fetch('auto-refresh.php')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('🔍 Check de actualización:', data);
+                    
+                    if (data.needs_refresh) {
+                        let message = '';
+                        
+                        switch (data.reason) {
+                            case 'new_enrollments_detected':
+                                message = `🆕 ${data.new_enrollments_count} nueva(s) formación(es) detectada(s)`;
+                                break;
+                            case 'new_enrollments_and_expired':
+                                message = `🆕 ${data.new_enrollments_count} nueva(s) formación(es) + cache expirado`;
+                                break;
+                            case 'cache_expired':
+                                message = `⏰ Cache expirado (${data.cache_age_minutes} min)`;
+                                break;
+                            default:
+                                message = `🔄 Actualización disponible`;
+                        }
+                        
+                        console.log(`🔔 ${message}`);
+                        console.log(`📊 Actual: ${data.current_count} | API: ${data.api_count}`);
+                        
+                        // Mostrar notificación al usuario
+                        CLEV.autoRefresh.showUpdateNotification(message, data);
+                    } else {
+                        console.log('✅ No hay actualizaciones disponibles');
+                    }
+                    
+                    return data;
+                })
+                .catch(error => {
+                    console.error('❌ Error al verificar actualizaciones:', error);
+                    return null;
+                });
+        },
+        
+        // Mostrar notificación de actualización
+        showUpdateNotification: function(message, data) {
+            // Remover notificación anterior si existe
+            const existingNotification = document.getElementById('update-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Crear notificación
+            const notification = document.createElement('div');
+            notification.id = 'update-notification';
+            notification.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 16px 20px;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+                    z-index: 9999;
+                    font-family: 'Gilroy', sans-serif;
+                    max-width: 350px;
+                    animation: slideInRight 0.4s ease;
+                ">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <span style="font-size: 20px; margin-right: 8px;">🆕</span>
+                        <strong>Nuevas Formaciones</strong>
+                    </div>
+                    <div style="font-size: 14px; margin-bottom: 16px; opacity: 0.9;">
+                        ${message}
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button 
+                            onclick="CLEV.autoRefresh.updateNow()" 
+                            style="
+                                background: rgba(255,255,255,0.2);
+                                border: 1px solid rgba(255,255,255,0.3);
+                                color: white;
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-size: 13px;
+                                transition: all 0.2s;
+                            "
+                            onmouseover="this.style.background='rgba(255,255,255,0.3)'"
+                            onmouseout="this.style.background='rgba(255,255,255,0.2)'"
+                        >
+                            🔄 Actualizar Ahora
+                        </button>
+                        <button 
+                            onclick="CLEV.autoRefresh.dismissNotification()" 
+                            style="
+                                background: transparent;
+                                border: 1px solid rgba(255,255,255,0.3);
+                                color: white;
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-size: 13px;
+                                transition: all 0.2s;
+                            "
+                            onmouseover="this.style.background='rgba(255,255,255,0.1)'"
+                            onmouseout="this.style.background='transparent'"
+                        >
+                            ❌ Cerrar
+                        </button>
+                    </div>
+                </div>
+                <style>
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                </style>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-cerrar después de 30 segundos
+            setTimeout(() => {
+                CLEV.autoRefresh.dismissNotification();
+            }, 30000);
+        },
+        
+        // Actualizar ahora
+        updateNow: function() {
+            console.log('🔄 Actualizando formaciones...');
+            CLEV.autoRefresh.dismissNotification();
+            
+            // Limpiar cache y recargar
+            CLEV.clearCache().then(() => {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            });
+        },
+        
+        // Cerrar notificación
+        dismissNotification: function() {
+            const notification = document.getElementById('update-notification');
+            if (notification) {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }
+        },
+        
+        // Iniciar auto-refresh
+        start: function(intervalMinutes = 5) {
+            if (this.isEnabled) {
+                console.log('⚠️ Auto-refresh ya está activo');
+                return;
+            }
+            
+            console.log(`🔄 Iniciando auto-refresh cada ${intervalMinutes} minutos`);
+            this.isEnabled = true;
+            
+            // Check inicial
+            this.checkForUpdates();
+            
+            // Configurar intervalo
+            this.intervalId = setInterval(() => {
+                this.checkForUpdates();
+            }, intervalMinutes * 60 * 1000);
+        },
+        
+        // Detener auto-refresh
+        stop: function() {
+            if (this.intervalId) {
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+                this.isEnabled = false;
+                console.log('⏹️ Auto-refresh detenido');
+            }
+        },
+        
+        // Estado del auto-refresh
+        status: function() {
+            console.log('📊 Estado del Auto-refresh:');
+            console.log(`   Activo: ${this.isEnabled ? '✅ Sí' : '❌ No'}`);
+            console.log(`   Interval ID: ${this.intervalId}`);
+            
+            if (this.isEnabled) {
+                console.log('🔧 Comandos disponibles:');
+                console.log('   CLEV.autoRefresh.stop() - Detener');
+                console.log('   CLEV.autoRefresh.checkForUpdates() - Check manual');
+            } else {
+                console.log('🔧 Para iniciar: CLEV.autoRefresh.start(5) // 5 minutos');
+            }
+        }
+    },
+    
+    // Iniciar auto-refresh por defecto
+    enableAutoRefresh: function(intervalMinutes = 5) {
+        console.log(`🚀 Habilitando auto-refresh inteligente (${intervalMinutes} min)`);
+        this.autoRefresh.start(intervalMinutes);
     }
 };
 
@@ -624,6 +925,16 @@ console.log('   CLEV.prevSlide() - Slide anterior');
 console.log('   CLEV.changeSlidesPerView(N) - Cambiar a N formaciones por vista');
 console.log('🎭 TESTIMONIOS:');
 console.log('   CLEV.debugTestimonials() - Debug completo de testimonios');
+console.log('⚡ RENDIMIENTO:');
+console.log('   CLEV.performanceTest() - Test de velocidad de carga');
+console.log('   CLEV.performanceComparison() - Comparar con/sin cache');
+console.log('   CLEV.clearCache() - Limpiar cache para forzar recarga');
+console.log('🔄 AUTO-REFRESH (NUEVO):');
+console.log('   CLEV.enableAutoRefresh(5) - Activar detección cada 5 min');
+console.log('   CLEV.autoRefresh.checkForUpdates() - Check manual');
+console.log('   CLEV.autoRefresh.status() - Ver estado actual');
+console.log('   CLEV.autoRefresh.stop() - Detener auto-refresh');
 console.log('🔧 GENERAL:');
 console.log('   CLEV.reinitialize() - Reinicializar todo');
 console.log('📱 Responsive automático: 1 en móvil, 2 en tablet, 3 en desktop');
+console.log('🚀 OPTIMIZACIONES ACTIVAS: Paralelo, Cache inteligente, Auto-refresh, Timeouts optimizados');
