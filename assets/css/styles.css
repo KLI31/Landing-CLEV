@@ -452,6 +452,39 @@ body {
 #modal-video {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
+
+/* Animaciones para notificaciones de auto-refresh */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Estilos para notificación de auto-refresh */
+#update-notification {
+  font-family: 'Gilroy', sans-serif !important;
+}
+
+#update-notification button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
 .scale-105 {
   transform: scale(1.05);
 }
