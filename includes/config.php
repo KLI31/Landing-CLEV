@@ -6,8 +6,8 @@ define('SITE_TITLE', 'Corporacion CLEV');
 define('SITE_DESCRIPTION', 'Corporación Latinoamericana de Educación Virtual (CLEV) - Líder en educación virtual y capacitación empresarial en Latinoamérica. Ofrecemos cursos, diplomados y programas de formación online de alta calidad.');
 
 // URLs de APIs
-define('API_ALL_ENROLLMENTS', 'http://localhost:4030/kayros/api/v1/enrollments/');
-define('API_ENROLLMENT_DETAILS', 'http://localhost:4025/api/enrollments/');
+define('API_ALL_ENROLLMENTS', 'https://api.corporacionclev.com/kayros/api/v1/enrollments/');
+define('API_ENROLLMENT_DETAILS', 'https://plutus.corporacionclev.com/api/enrollments/');
 
 // Mensajes de error
 define('ERROR_FETCH_FAILED', 'Error al obtener los enrollments');
@@ -15,7 +15,10 @@ define('ERROR_NO_ENROLLMENTS', 'No se encontraron enrollments');
 define('ERROR_DETAILS_FETCH_FAILED', 'No se pudieron obtener los detalles para el enrollment ID');
 
 // Configuración de cache (en segundos)
-define('CACHE_DURATION', 300); // 5 minutos
+define('CACHE_DURATION', 1800); // 30 minutos - optimizado
+define('CACHE_DURATION_LONG', 3600); // 1 hora para datos estables
+define('MAX_PARALLEL_REQUESTS', 10); // Máximo 10 peticiones paralelas
+define('API_TIMEOUT', 15); // 15 segundos timeout optimizado
 
 // Testimoniales
 $testimonials = [
