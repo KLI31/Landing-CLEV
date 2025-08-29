@@ -2,55 +2,110 @@
 // Funciones para la aplicación CLEV
 
 /**
- * Obtiene los detalles de un enrollment específico
+ * Obtiene los detalles de múltiples enrollments en paralelo usando cURL
+ */
+function fetchMultipleEnrollmentDetails($enrollmentIds) {
+    if (empty($enrollmentIds)) {
+        return [];
+    }
+    
+    $multiHandle = curl_multi_init();
+    $curlHandles = [];
+    $results = [];
+    
+    // Limitar a MAX_PARALLEL_REQUESTS peticiones paralelas
+    $chunks = array_chunk($enrollmentIds, MAX_PARALLEL_REQUESTS);
+    
+    foreach ($chunks as $chunk) {
+        $curlHandles = [];
+        
+        // Preparar handles para este chunk
+        foreach ($chunk as $enrollmentId) {
+            $url = API_ENROLLMENT_DETAILS . $enrollmentId . '/details';
+            $ch = curl_init();
+            
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => API_TIMEOUT,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_USERAGENT => 'CLEV-Landing-PHP/2.0-Optimized',
+                CURLOPT_HTTPHEADER => ['Accept: application/json'],
+                CURLOPT_FAILONERROR => false,
+                CURLOPT_SSL_VERIFYPEER => false
+            ]);
+            
+            curl_multi_add_handle($multiHandle, $ch);
+            $curlHandles[$enrollmentId] = $ch;
+        }
+        
+        // Ejecutar peticiones paralelas
+        $running = null;
+        do {
+            curl_multi_exec($multiHandle, $running);
+            curl_multi_select($multiHandle);
+        } while ($running > 0);
+        
+        // Recopilar resultados
+        foreach ($curlHandles as $enrollmentId => $ch) {
+            $response = curl_multi_getcontent($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            
+            if ($response && $httpCode === 200) {
+                $data = json_decode($response, true);
+                if (json_last_error() === JSON_ERROR_NONE && $data) {
+                    $results[$enrollmentId] = $data;
+                }
+            } else {
+                error_log("Error HTTP $httpCode para enrollment $enrollmentId");
+            }
+            
+            curl_multi_remove_handle($multiHandle, $ch);
+            curl_close($ch);
+        }
+    }
+    
+    curl_multi_close($multiHandle);
+    return $results;
+}
+
+/**
+ * Obtiene detalles de un enrollment específico (versión simple para casos individuales)
  */
 function fetchEnrollmentDetails($enrollmentId) {
-    $detailsUrl = API_ENROLLMENT_DETAILS . $enrollmentId . '/details';
+    $results = fetchMultipleEnrollmentDetails([$enrollmentId]);
+    return isset($results[$enrollmentId]) ? $results[$enrollmentId] : null;
+}
+
+/**
+ * Sistema de cache inteligente para enrollments
+ */
+function getCacheFilePath($type, $id = null) {
+    $cacheDir = 'cache';
+    if (!is_dir($cacheDir)) {
+        mkdir($cacheDir, 0755, true);
+    }
     
-    // Configurar contexto para la petición HTTP
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'timeout' => 10,
-            'header' => [
-                'User-Agent: CLEV-Landing-PHP/1.0',
-                'Accept: application/json'
-            ]
-        ]
-    ]);
-    
-    try {
-        $response = @file_get_contents($detailsUrl, false, $context);
-        
-        if ($response === false) {
-            error_log("Error al obtener detalles del enrollment $enrollmentId");
-            return null;
-        }
-        
-        $data = json_decode($response, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("Error JSON al decodificar detalles del enrollment $enrollmentId: " . json_last_error_msg());
-            return null;
-        }
-        
-        return $data;
-        
-    } catch (Exception $e) {
-        error_log("Excepción al obtener detalles del enrollment $enrollmentId: " . $e->getMessage());
-        return null;
+    switch ($type) {
+        case 'base':
+            return $cacheDir . '/enrollments_base.json';
+        case 'details':
+            return $cacheDir . '/enrollment_details_' . $id . '.json';
+        case 'final':
+            return $cacheDir . '/enrollments_final.json';
+        default:
+            return $cacheDir . '/enrollments.json';
     }
 }
 
 /**
- * Obtiene todos los enrollments disponibles
+ * Obtiene enrollments base desde API o cache
  */
-function fetchAllEnrollments() {
-    // Intentar obtener desde cache
-    $cacheFile = 'cache/enrollments.json';
-    $cacheTime = CACHE_DURATION;
+function fetchBaseEnrollments() {
+    $cacheFile = getCacheFilePath('base');
     
-    if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheTime) {
+    // Verificar cache base
+    if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < CACHE_DURATION_LONG) {
         $cachedData = file_get_contents($cacheFile);
         $enrollments = json_decode($cachedData, true);
         if ($enrollments !== null) {
@@ -58,65 +113,164 @@ function fetchAllEnrollments() {
         }
     }
     
-    // Configurar contexto para la petición HTTP
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'timeout' => 15,
-            'header' => [
-                'User-Agent: CLEV-Landing-PHP/1.0',
-                'Accept: application/json'
-            ]
-        ]
+    // Fetch desde API usando cURL optimizado
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => API_ALL_ENROLLMENTS,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => API_TIMEOUT,
+        CURLOPT_CONNECTTIMEOUT => 5,
+        CURLOPT_USERAGENT => 'CLEV-Landing-PHP/2.0-Optimized',
+        CURLOPT_HTTPHEADER => ['Accept: application/json'],
+        CURLOPT_FAILONERROR => false,
+        CURLOPT_SSL_VERIFYPEER => false
     ]);
     
-    try {
-        $response = @file_get_contents(API_ALL_ENROLLMENTS, false, $context);
-        
-        if ($response === false) {
-            error_log(ERROR_FETCH_FAILED);
-            return [];
-        }
-        
-        $apiData = json_decode($response, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("Error JSON al decodificar enrollments: " . json_last_error_msg());
-            return [];
-        }
-        
-        if (!isset($apiData['data']) || !is_array($apiData['data']) || empty($apiData['data'])) {
-            error_log(ERROR_NO_ENROLLMENTS);
-            return [];
-        }
-        
-        $enrollments = $apiData['data'];
-        $enrollmentDetails = [];
-        
-        // Obtener detalles de cada enrollment
-        foreach ($enrollments as $enrollment) {
-            if (isset($enrollment['id'])) {
-                $details = fetchEnrollmentDetails($enrollment['id']);
-                if ($details !== null) {
-                    $enrollmentDetails[] = $details;
-                }
-            }
-        }
-        
-        // Guardar en cache
-        if (!empty($enrollmentDetails)) {
-            if (!is_dir('cache')) {
-                mkdir('cache', 0755, true);
-            }
-            file_put_contents($cacheFile, json_encode($enrollmentDetails));
-        }
-        
-        return $enrollmentDetails;
-        
-    } catch (Exception $e) {
-        error_log("Excepción al obtener enrollments: " . $e->getMessage());
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if (!$response || $httpCode !== 200) {
+        error_log("Error al obtener enrollments base. HTTP: $httpCode");
         return [];
     }
+    
+    $apiData = json_decode($response, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log("Error JSON al decodificar enrollments: " . json_last_error_msg());
+        return [];
+    }
+    
+    if (!isset($apiData['data']) || !is_array($apiData['data']) || empty($apiData['data'])) {
+        error_log(ERROR_NO_ENROLLMENTS);
+        return [];
+    }
+    
+    $enrollments = $apiData['data'];
+    
+    // Guardar en cache base
+    file_put_contents($cacheFile, json_encode($enrollments));
+    
+    return $enrollments;
+}
+
+/**
+ * Obtiene todos los enrollments con detalles (OPTIMIZADO)
+ */
+function fetchAllEnrollments() {
+    $startTime = microtime(true);
+    $finalCacheFile = getCacheFilePath('final');
+    
+    // Verificar cache final completo
+    if (file_exists($finalCacheFile) && (time() - filemtime($finalCacheFile)) < CACHE_DURATION) {
+        $cachedData = file_get_contents($finalCacheFile);
+        $enrollments = json_decode($cachedData, true);
+        if ($enrollments !== null) {
+            $loadTime = round((microtime(true) - $startTime) * 1000, 2);
+            error_log("Enrollments cargados desde cache en {$loadTime}ms");
+            return $enrollments;
+        }
+    }
+    
+    // Obtener enrollments base
+    $baseEnrollments = fetchBaseEnrollments();
+    if (empty($baseEnrollments)) {
+        return [];
+    }
+    
+    // Extraer IDs para buscar detalles
+    $enrollmentIds = [];
+    foreach ($baseEnrollments as $enrollment) {
+        if (isset($enrollment['id'])) {
+            $enrollmentIds[] = $enrollment['id'];
+        }
+    }
+    
+    if (empty($enrollmentIds)) {
+        return [];
+    }
+    
+    error_log("Obteniendo detalles de " . count($enrollmentIds) . " enrollments en paralelo...");
+    
+    // Obtener detalles EN PARALELO
+    $detailsResults = fetchMultipleEnrollmentDetails($enrollmentIds);
+    
+    // Convertir a array secuencial para el frontend
+    $enrollmentDetails = array_values($detailsResults);
+    
+    // Guardar en cache final
+    if (!empty($enrollmentDetails)) {
+        file_put_contents($finalCacheFile, json_encode($enrollmentDetails));
+        
+        $loadTime = round((microtime(true) - $startTime) * 1000, 2);
+        $successCount = count($enrollmentDetails);
+        $totalCount = count($enrollmentIds);
+        
+        error_log("Enrollments procesados: $successCount/$totalCount en {$loadTime}ms");
+    }
+    
+    return $enrollmentDetails;
+}
+
+/**
+ * Funciones de utilidad para cache
+ */
+function clearAllCache() {
+    $cacheFiles = [
+        getCacheFilePath('base'),
+        getCacheFilePath('final'),
+        'cache/enrollments.json' // archivo legacy
+    ];
+    
+    $cleared = 0;
+    foreach ($cacheFiles as $file) {
+        if (file_exists($file)) {
+            unlink($file);
+            $cleared++;
+        }
+    }
+    
+    // Limpiar archivos de detalles individuales
+    $cacheDir = 'cache';
+    if (is_dir($cacheDir)) {
+        $files = glob($cacheDir . '/enrollment_details_*.json');
+        foreach ($files as $file) {
+            if (file_exists($file)) {
+                unlink($file);
+                $cleared++;
+            }
+        }
+    }
+    
+    error_log("Cache limpiado: $cleared archivos eliminados");
+    return $cleared;
+}
+
+function getCacheStatus() {
+    $status = [
+        'base' => 'missing',
+        'final' => 'missing',
+        'base_age' => 0,
+        'final_age' => 0,
+        'total_size' => 0
+    ];
+    
+    $baseFile = getCacheFilePath('base');
+    $finalFile = getCacheFilePath('final');
+    
+    if (file_exists($baseFile)) {
+        $status['base'] = 'exists';
+        $status['base_age'] = time() - filemtime($baseFile);
+        $status['total_size'] += filesize($baseFile);
+    }
+    
+    if (file_exists($finalFile)) {
+        $status['final'] = 'exists';
+        $status['final_age'] = time() - filemtime($finalFile);
+        $status['total_size'] += filesize($finalFile);
+    }
+    
+    return $status;
 }
 
 /**
